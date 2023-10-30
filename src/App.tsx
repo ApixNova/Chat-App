@@ -3,7 +3,7 @@ import "./App.css";
 import firebase from "firebase/app";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { serverTimestamp } from "firebase/database";
+import { serverTimestamp } from "firebase/firestore";
 import {
   collection,
   query,
@@ -12,13 +12,12 @@ import {
   getFirestore,
 } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useRef } from "react";
 import { useAuthState, useSignInWithGoogle } from "react-firebase-hooks/auth";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 
 //initialize firebase
 const app = initializeApp({
-  //config
   apiKey: "AIzaSyDmgTwJybxuBptV2ElwWX46lkCvVv2TdgM",
   authDomain: "apix-chat-app.firebaseapp.com",
   projectId: "apix-chat-app",
@@ -38,7 +37,11 @@ function App() {
   return (
     <>
       <div className="App">
-        <header>{user ? <ChatRoom /> : <SignIn />}</header>
+        <header>
+          <h1>Title</h1>
+          <SignOut />
+        </header>
+        <section>{user ? <ChatRoom /> : <SignIn />}</section>
       </div>
     </>
   );
@@ -50,6 +53,8 @@ type User = {
 };
 
 function ChatRoom() {
+  const dummy = useRef<HTMLDivElement | null>(null);
+
   const messagesRef = collection(db, "messages");
   const q = query(messagesRef, orderBy("createdAt"), limit(25));
   // didn't use {idField: 'id'} since it does't work rn
@@ -62,13 +67,6 @@ function ChatRoom() {
     e.preventDefault();
     const { uid, photoURL } = auth.currentUser as User;
 
-    // await messagesRef.add({
-    //   text: formValue,
-    //   createdAt: serverTimestamp(),
-    //   uid,
-    //   photoURL
-    // })
-
     await addDoc(messagesRef, {
       text: formValue,
       createdAt: serverTimestamp(),
@@ -77,15 +75,16 @@ function ChatRoom() {
     });
 
     setFormValue("");
+    dummy.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  console.log(q);
   return (
     <>
-      <div>
+      <main>
         {messages &&
           messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
-      </div>
+        <div ref={dummy}></div>
+      </main>
       <form onSubmit={sendMessage}>
         <input
           value={formValue}
@@ -98,12 +97,12 @@ function ChatRoom() {
 }
 
 function ChatMessage(props: any) {
-  const { text, uid } = props.message;
+  const { text, uid, photoURL } = props.message;
   // POSSIBLY BROKEN
   const messageClass = uid === auth.currentUser?.uid ? "sent" : "recieved";
   return (
     <div className={`message ${messageClass}`}>
-      {/* <img src={}></img> */}
+      <img src={photoURL}></img>
       <p>{text}</p>
     </div>
   );
