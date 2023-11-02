@@ -8,7 +8,7 @@ import {
   query,
   orderBy,
   limit,
-  getFirestore
+  getFirestore,
 } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
 import { FormEvent, useState, useRef } from "react";
@@ -51,13 +51,12 @@ type User = {
   displayName: String;
 };
 
-  function ChatRoom() {
+function ChatRoom() {
   const dummy = useRef<HTMLDivElement | null>(null);
 
   const messagesRef = collection(db, "messages");
-  
-  const q = query(messagesRef, orderBy("createdAt"), limit(25));
 
+  const q = query(messagesRef, orderBy("createdAt"), limit(25));
 
   // didn't use {idField: 'id'} since it does't work rn
   const [messages, loading, error] = useCollection(q);
@@ -68,32 +67,37 @@ type User = {
     //prevent from refreshing the page
     e.preventDefault();
     const { uid, photoURL, displayName } = auth.currentUser as User;
-    await addDoc(messagesRef, {
-      text: formValue,
-      createdAt: serverTimestamp(),
-      uid,
-      photoURL,
-      displayName,
-    });
-
+    if (formValue != undefined && formValue != "") {
+      await addDoc(messagesRef, {
+        text: formValue,
+        createdAt: serverTimestamp(),
+        uid,
+        photoURL,
+        displayName,
+      });
+      dummy.current?.scrollIntoView({ behavior: "smooth" });
+    }
     setFormValue("");
-    dummy.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <>
       <main>
+        {error && <h2>Error: {JSON.stringify(error)}</h2>}
+        {loading && <h2>Messages Loading...</h2>}
         {messages &&
-          messages.docs.map((msg) => <ChatMessage key={msg.id} message={msg.data()} />)}
+          messages.docs.map((msg) => (
+            <ChatMessage key={msg.id} message={msg.data()} />
+          ))}
         <div ref={dummy}></div>
       </main>
       <form onSubmit={sendMessage}>
         <input
           value={formValue}
-          placeholder="message"
+          placeholder="Message"
           onChange={(e) => setFormValue(e.target.value)}
         />
-        <button type="submit">send</button>
+        <button type="submit">Send</button>
       </form>
     </>
   );
@@ -101,7 +105,6 @@ type User = {
 
 function ChatMessage(props: any) {
   const { text, uid, photoURL, displayName } = props.message;
-  //console.log(props.message);
   const messageClass = uid === auth.currentUser?.uid ? "sent" : "recieved";
   return (
     <div className={`message ${messageClass}`}>
