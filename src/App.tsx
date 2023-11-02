@@ -1,6 +1,5 @@
 import "./App.css";
 
-import firebase from "firebase/app";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { serverTimestamp } from "firebase/firestore";
@@ -13,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
 import { FormEvent, useState, useRef } from "react";
-import { useAuthState, useSignInWithGoogle } from "react-firebase-hooks/auth";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 
 //initialize firebase
@@ -29,7 +28,6 @@ const app = initializeApp({
 
 const auth = getAuth();
 const db = getFirestore(app);
-// const currentUser = auth.currentUser
 
 function App() {
   const [user] = useAuthState(auth);
@@ -38,7 +36,7 @@ function App() {
     <>
       <div className="App">
         <header>
-          <h1>Title</h1>
+          <h1>Chat App</h1>
           <SignOut />
         </header>
         <section>{user ? <ChatRoom /> : <SignIn />}</section>
@@ -50,6 +48,7 @@ function App() {
 type User = {
   uid: String;
   photoURL: String;
+  displayName: String;
 };
 
 function ChatRoom() {
@@ -65,13 +64,14 @@ function ChatRoom() {
   const sendMessage = async (e: FormEvent) => {
     //prevent from refreshing the page
     e.preventDefault();
-    const { uid, photoURL } = auth.currentUser as User;
-
+    const { uid, photoURL, displayName } = auth.currentUser as User;
+    console.log(auth.currentUser?.displayName);
     await addDoc(messagesRef, {
       text: formValue,
       createdAt: serverTimestamp(),
       uid,
       photoURL,
+      displayName,
     });
 
     setFormValue("");
@@ -88,22 +88,26 @@ function ChatRoom() {
       <form onSubmit={sendMessage}>
         <input
           value={formValue}
+          placeholder="message"
           onChange={(e) => setFormValue(e.target.value)}
         />
-        <button type="submit">submit</button>
+        <button type="submit">send</button>
       </form>
     </>
   );
 }
 
 function ChatMessage(props: any) {
-  const { text, uid, photoURL } = props.message;
-  // POSSIBLY BROKEN
+  const { text, uid, photoURL, displayName } = props.message;
+  console.log(props.key);
   const messageClass = uid === auth.currentUser?.uid ? "sent" : "recieved";
   return (
     <div className={`message ${messageClass}`}>
       <img src={photoURL}></img>
-      <p>{text}</p>
+      <div className="text-box">
+        <p>{displayName}</p>
+        <p>{text}</p>
+      </div>
     </div>
   );
 }

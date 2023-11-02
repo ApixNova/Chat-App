@@ -1,6 +1,63 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+}
+header {
+  background: grey;
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  align-items: center;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  height: 80px;
+}
+
+form {
+  background: grey;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  height: 80px;
+  width: 100%;
+  position: sticky;
+  bottom: 0;
+}
+
+form input {
+  padding: 0.6em 1.2em;
+  border-radius: 3px;
+  font-size: 1em;
+  font-weight: 500;
+  width: 70%;
+  font-family: inherit;
+  border: 2px solid white;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  background: black;
+  display: flex;
+  gap: 20px;
+}
+
+.message img {
+  margin-left: 5px;
+  margin-top: 5px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+}
+
+.text-box {
+  text-align: start;
+  width: fit-content;
 }
