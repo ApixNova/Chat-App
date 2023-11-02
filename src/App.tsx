@@ -8,12 +8,12 @@ import {
   query,
   orderBy,
   limit,
-  getFirestore,
+  getFirestore
 } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
 import { FormEvent, useState, useRef } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { useCollectionData } from "react-firebase-hooks/firestore";
+import { useCollection } from "react-firebase-hooks/firestore";
 
 //initialize firebase
 const app = initializeApp({
@@ -36,7 +36,7 @@ function App() {
     <>
       <div className="App">
         <header>
-          <h1>Chat App</h1>
+          <h1>Apix Chat</h1>
           <SignOut />
         </header>
         <section>{user ? <ChatRoom /> : <SignIn />}</section>
@@ -51,13 +51,16 @@ type User = {
   displayName: String;
 };
 
-function ChatRoom() {
+  function ChatRoom() {
   const dummy = useRef<HTMLDivElement | null>(null);
 
   const messagesRef = collection(db, "messages");
+  
   const q = query(messagesRef, orderBy("createdAt"), limit(25));
+
+
   // didn't use {idField: 'id'} since it does't work rn
-  const [messages] = useCollectionData(q);
+  const [messages, loading, error] = useCollection(q);
 
   const [formValue, setFormValue] = useState("");
 
@@ -65,7 +68,6 @@ function ChatRoom() {
     //prevent from refreshing the page
     e.preventDefault();
     const { uid, photoURL, displayName } = auth.currentUser as User;
-    console.log(auth.currentUser?.displayName);
     await addDoc(messagesRef, {
       text: formValue,
       createdAt: serverTimestamp(),
@@ -82,7 +84,7 @@ function ChatRoom() {
     <>
       <main>
         {messages &&
-          messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
+          messages.docs.map((msg) => <ChatMessage key={msg.id} message={msg.data()} />)}
         <div ref={dummy}></div>
       </main>
       <form onSubmit={sendMessage}>
@@ -99,14 +101,14 @@ function ChatRoom() {
 
 function ChatMessage(props: any) {
   const { text, uid, photoURL, displayName } = props.message;
-  console.log(props.key);
+  //console.log(props.message);
   const messageClass = uid === auth.currentUser?.uid ? "sent" : "recieved";
   return (
     <div className={`message ${messageClass}`}>
       <img src={photoURL}></img>
       <div className="text-box">
-        <p>{displayName}</p>
-        <p>{text}</p>
+        <p className="display-name">{displayName}</p>
+        <p className="text">{text}</p>
       </div>
     </div>
   );
@@ -115,7 +117,6 @@ function ChatMessage(props: any) {
 function SignIn() {
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    // firebase.auth().signInWithPopup(provider);
     signInWithPopup(auth, provider);
   };
   return <button onClick={signInWithGoogle}>Sign in with Google</button>;
