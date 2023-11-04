@@ -84,21 +84,23 @@ function ChatRoom() {
     <>
       <main>
         {error && <h2>Error: {JSON.stringify(error)}</h2>}
-        {loading && <h2>Messages Loading...</h2>}
+        {loading && <h2>Loading...</h2>}
         {messages &&
           messages.docs.map((msg) => (
             <ChatMessage key={msg.id} message={msg.data()} />
           ))}
         <div ref={dummy}></div>
       </main>
-      <form onSubmit={sendMessage}>
-        <input
-          value={formValue}
-          placeholder="Message"
-          onChange={(e) => setFormValue(e.target.value)}
-        />
-        <button type="submit">Send</button>
-      </form>
+      {!loading && (
+        <form onSubmit={sendMessage}>
+          <input
+            value={formValue}
+            placeholder="Message"
+            onChange={(e) => setFormValue(e.target.value)}
+          />
+          <button type="submit">Send</button>
+        </form>
+      )}
     </>
   );
 }
